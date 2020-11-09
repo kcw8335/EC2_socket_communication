@@ -16,6 +16,10 @@ from function import *
 receive_directory = "/home/ubuntu/EC2_python_realtime/realtime_data_xml/"
 send_directory = "/home/ubuntu/EC2_python_realtime/control_data_xml/"
 host = ""
+"""send_port_ras1 = 8345
+send_port_ras2 = 8343
+rcv_port = 8341
+"""
 
 def handle_receive(client_socket):
     while 1:
@@ -86,39 +90,50 @@ def handle_send(client_socket):
     client_socket.close()
 
 def accept_func():
+    send_port_ras1 = 8345
+    send_port_ras2 = 8343
+    rcv_port = 8341
     #IPv4 체계, TCP 타입 소켓 객체를 생성
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket_ras1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket_ras2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #ip주소와 port번호를 함께 socket에 바인드 한다.
     #포트의 범위는 1-65535 사이의 숫자를 사용할 수 있다.
-    server_socket.bind((host, send_port))
-    server_socket2.bind((host, port))
+    server_socket.bind((host, rcv_port))
+    server_socket_ras1.bind((host, send_port_ras1))
+    #server_socket_ras2.bind((host, send_port_ras2)) 
+
     #서버 소켓은 최대 4개의 클라이언트의 접속을 허용한다.
     server_socket.listen(2)
-
     #서버 소켓2는 실시간 상황을 받는 소켓으로, 최대 2개의 클라이언트의 접속을 허용한다.
-    server_socket2.listen(2)
+    server_socket_ras1.listen(1)
+    #server_socket_ras2.listen(1)
 
     while 1:
         try:
             #클라이언트 함수가 접속하면 새로운 소켓을 반환한다.
             client_socket, addr = server_socket.accept()
-            client_socket2, addr2 = server_socket2.accept()
+            client_socket_ras1, addr2 = server_socket_ras1.accept()
+            #client_socket_ras2, addr3 = server_socket_ras2.accept()
             print("접속 완료")
         except KeyboardInterrupt:
             server_socket.close()
-            server_socket2.close()
+            server_socket_ras1.close()
+            #server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
-        send_thread = threading.Thread(target=handle_send, args=(client_socket,))
-        receive_thread = threading.Thread(target=handle_receive, args=(client_socket2,))
-        send_thread.daemon = True
-        receive_thread.daemon = True
-        send_thread.start()
-        receive_thread.start()
+        send_ras1_thread = threading.Thread(target=handle_send, args=(client_socket_ras1,))
+        #send_ras2_thread = threading.Thread(target=handle_send, args=(client_socket_ras2,))
+        rcv_thread = threading.Thread(target=handle_receive, args=(client_socket,))
+        send_ras1_thread.daemon = True
+        #send_ras2_thread.daemon = True
+        rcv_thread.daemon = True
+        send_ras1_thread.start()
+        #send_ras2_thread.start()
+        rcv_thread.start()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Control Server -sp send_port -p port")
+    """parser = argparse.ArgumentParser(description="Control Server -sp send_port -p port")
     parser.add_argument('-sp', help="send_port_number", required=True)
     parser.add_argument('-p', help="port_number", required=True)
 
@@ -128,5 +143,5 @@ if __name__ == '__main__':
         port = int(args.p)
         send_port = int(args.sp)
     except:
-        pass
+        pass"""
     accept_func()
