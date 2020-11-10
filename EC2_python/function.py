@@ -2,6 +2,9 @@ from xml.etree import ElementTree
 import os
 import json
 from collections import OrderedDict
+from Cryptodome.Hash import SHA256 as SHA
+import pymysql
+import hashlib
 
 # xml 데이터를 받고 무결성 검사를 하기 위해
 # 어떤 엣지인지? 어떤 신호등인지? 확인하기 위한 함수
@@ -28,9 +31,6 @@ def parsing_XML_control(file_name, directory):
     occasion = root.findtext("occasion")
     return [edgeNo, traffic_light, time, occasion]
 
-# pip install pymysql
-import pymysql
-
 # 솔트값을 얻기 위한 함수
 # 첫번째 매개변수는 str 타입의 edgeNo
 # 두번째 매개변수는 str 타입의 traffic_light
@@ -56,8 +56,6 @@ def get_salt_value(edgeNo, traffic_light):
     return rows[0][0]
 
 # xml 데이터를 보내기 전에 데이터베이스에 로깅하기 위해 작업
-
-from Cryptodome.Hash import SHA256 as SHA
 
 # 솔트가 추가된 해쉬값을 리턴하는 함수
 # 첫번째 매개변수는 str 타입의 파일이름
@@ -130,7 +128,6 @@ def getFileData(file_name, directory):
             data += line
     return data
 
-import hashlib
 def hashing(file_name, directory):
     XML_control = parsing_XML_control(file_name, directory)
     f = open(directory + file_name, 'rb')
