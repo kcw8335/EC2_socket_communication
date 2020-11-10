@@ -1,10 +1,13 @@
 from xml.etree import ElementTree
+import os
+import json
+from collections import OrderedDict
 
 # xml 데이터를 받고 무결성 검사를 하기 위해
 # 어떤 엣지인지? 어떤 신호등인지? 확인하기 위한 함수
 # 리턴값은 엣지넘버, 신호등번호, 시간을 리스트로 반환
-def parsing_XML(filename):
-    tree = ElementTree.parse(filename)
+def parsing_XML(file_name, directory):
+    tree = ElementTree.parse(directory + file_name)
     root = tree.getroot()
     # root에서 나머지 세부 문자 추출
     edgeNo = root.findtext("edgeNo")
@@ -15,8 +18,8 @@ def parsing_XML(filename):
 # 제어신호 값들을 데이터베이스에 로깅하기 위해
 # control.xml 값들을 parsing 해옴
 # 첫번째 매개변수는 str 타입의 xml 파일 경로
-def parsing_XML_control(filename, directory):
-    tree = ElementTree.parse(directory+"/"+filename)
+def parsing_XML_control(file_name, directory):
+    tree = ElementTree.parse(directory+file_name)
     root = tree.getroot()
     # root에서 나머지 세부 문자 추출
     edgeNo = root.findtext("edgeNo")
@@ -54,7 +57,6 @@ def get_salt_value(edgeNo, traffic_light):
 
 # xml 데이터를 보내기 전에 데이터베이스에 로깅하기 위해 작업
 
-# pip install pycryptodomex
 from Cryptodome.Hash import SHA256 as SHA
 
 # 솔트가 추가된 해쉬값을 리턴하는 함수
@@ -64,36 +66,16 @@ def make_hash(filename, directory):
     # 파일을 바이너리 읽기 모드로 열기
     XML_control = parsing_XML_control(filename, directory)
 
-    f = open(directory+"/"+filename, mode = "rb")
+    f = open(directory+filename, mode = "rb")
     tmp_binary = f.read()
-    # print(tmp_binary)
-    #tmp = bytes(salt_value, encoding="utf-8")
-    # print(tmp)
-    #tmp_binary += tmp
-    # print(tmp_binary)
     # SHA256 객체 생성
-    tmp_binary += get_salt_value(XML_control[0], XML_control[1]).encode('utf-8')
+    f.close()
+    tmp_binary += bytes(get_salt_value(XML_control[0], XML_control[1]).encode())
     hash = SHA.new()
     # hashing
     hash.update(tmp_binary)
     return hash.hexdigest()
 
-# 라파로 데이터를 보내기위해 바이너리 형태로 xml과 hash값을 연결
-def xml_hash_value_make_binary(filename, hash_value):
-    # xml파일을 바이너리 형태 읽기 모드로 오픈
-    f = open(filename, mode = "rb")
-    tmp_binary = f.read()
-    # print(tmp_binary)
-    # hash value를 바이너리 형태로 변환
-    tmp = bytes(hash_value, encoding="utf-8")
-    # print(tmp)
-    tmp_binary += tmp
-    # print(tmp_binary)
-    return tmp_binary
-
-
-import json
-from collections import OrderedDict
 # Json 파일 만들기
 def make_Json_file(edgeNO, traffic_light, time, file_path):
     file_data = OrderedDict()
@@ -104,40 +86,37 @@ def make_Json_file(edgeNO, traffic_light, time, file_path):
     with open(file_path, 'w', encoding='utf-8') as make_file:
         json.dump(file_data, make_file, ensure_ascii=False, indent="\t")
 
-import os
-# 무결성 검사
-def integrity_check(hash_value, Raspberry_hash_value):
-    # 생성한 해쉬 값과 받은 해쉬 값이 같으면 파일 전송
-    if hash_value == Raspberry_hash_value:
-        os.system('scp -i "/home/ubuntu/EC2_python_realtime/socket_programming.pem" ./realtime_data_json/realtime.json ubuntu@ec2-13-209-12-175.ap-northeast-2.compute.amazonaws.com:/home/ubuntu/project/realtime_data_json/')
-        return True
-    # 생성한 해쉬 값과 받은 해쉬 값이 다르면 전송하지 않고
-    # 로그 기록!!!!!!!!!!!! <= 이거 만들기
-    else:
-        return False
-
-import time
-def make_time():
-    tmp = time.strftime('%c', time.localtime(time.time()))
-    tmp = tmp[11:13] + tmp[14:16] + tmp[17:19]
-    return tmp
 
 # hd는 받은 hash 값
 # file_path는 xml 데이터 경로
-def realtime_integrity_check(hd, file_path):
+def integrity_check_send(hd, file_name, directory):
     # 솔트값을 얻기 위해 xml parsing
-    tmp_list = parsing_XML(file_path)
+    s_msg = "raspberry1 hash 검사 통과& json 파일 전송 성공"
+    f_msg = "hash 검사 실패& json 파일 전송 실패"
+    tmp_list = parsing_XML(file_name, directory)
     edgeNo = tmp_list[0]
     traffic_light = tmp_list[1]
     time = tmp_list[2]
     # 솔트값 얻기
     salt_value = get_salt_value(edgeNo, traffic_light)
     # xml과 솔트 값을 받아서 hash 하기
-    hash_value = make_hash(file_path, salt_value)
+    hash_value = make_hash(file_name, directory)
+    print("hd : ", hd)
+    print("hash_value : ", hash_value)
+    # 받은 hash값과 생성한 hash 값이 같다면 json 파일 생성 후 송신
     if hd == hash_value:
-        return True
+        if edgeNo == "1":
+            file_path = "/home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_1.json"
+            make_Json_file(edgeNo, traffic_light, time, file_path)
+            os.system('scp -i "/home/ubuntu/socket_programming.pem" /home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_1.json ubuntu@ec2-13-209-12-175.ap-northeast-2.compute.amazonaws.com:/home/ubuntu/project4/realtime/')
+            return s_msg
+        elif edgeNo == "2":
+            file_path = "/home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_2.json"
+            make_Json_file(edgeNo, traffic_light, time, file_path)
+            os.system('scp -i "/home/ubuntu/socket_programming.pem" /home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_2.json ubuntu@ec2-13-209-12-175.ap-northeast-2.compute.amazonaws.com:/home/ubuntu/project4/realtime/')
+            return s_msg
     elif hd != hash_value:
-        return False
+        return f_msg
 
 def getFileSize(file_name, directory):
     file_size = os.path.getsize(directory + file_name)
@@ -156,7 +135,7 @@ def hashing(file_name, directory):
     XML_control = parsing_XML_control(file_name, directory)
     f = open(directory + file_name, 'rb')
     data = f.read()
-    data += bytes(get_salt_value(XML_control[0],XML_control[1]).encode())
     f.close()
+    data += bytes(get_salt_value(XML_control[0],XML_control[1]).encode())
     hd = hashlib.sha256(data).hexdigest()
     return hd
