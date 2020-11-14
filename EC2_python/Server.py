@@ -163,50 +163,50 @@ def accept_func():
     
     #IPv4 체계, TCP 타입 소켓 객체를 생성
     server_socket_rcv1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_ras1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket_ras2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #server_socket_ras2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     #ip주소와port번호를 함께 socket에 바인드 한다.
     #포트의 범위는 1-65535 사이의 숫자를 사용할 수 있다.
     server_socket_rcv1.bind((host, rcv1_port))
-    server_socket_rcv2.bind((host, rcv2_port))
+    #server_socket_rcv2.bind((host, rcv2_port))
     server_socket_ras1.bind((host, send_port_ras1))
-    server_socket_ras2.bind((host, send_port_ras2)) 
+    #server_socket_ras2.bind((host, send_port_ras2)) 
 
     #서버 소켓은 최대 4개의 클라이언트의 접속을 허용한다.
     server_socket_rcv1.listen(1)
-    server_socket_rcv2.listen(1)
+    #server_socket_rcv2.listen(1)
     #서버 소켓2는 실시간 상황을 받는 소켓으로, 최대 2개의 클라이언트의 접속을 허용한다.
     server_socket_ras1.listen(1)
-    server_socket_ras2.listen(1)
+    #server_socket_ras2.listen(1)
 
     while 1:
         try:
             #클라이언트 함수가 접속하면 새로운 소켓을 반환한다.
             client_socket_rcv1, addr1 = server_socket_rcv1.accept()
-            client_socket_rcv2, addr2 = server_socket_rcv2.accept()
+            #client_socket_rcv2, addr2 = server_socket_rcv2.accept()
             client_socket_ras1, addr3 = server_socket_ras1.accept()
-            client_socket_ras2, addr4 = server_socket_ras2.accept()
+            #client_socket_ras2, addr4 = server_socket_ras2.accept()
             print("접속 완료")
         except KeyboardInterrupt:
             server_socket_rcv1.close()
-            server_socket_rcv2.close()
+            #server_socket_rcv2.close()
             server_socket_ras1.close()
-            server_socket_ras2.close()
+            #server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
         send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
-        send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
+        #send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
         rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
-        rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))
+        #rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))
         send_ras1_thread.daemon = True
-        send_ras2_thread.daemon = True
+        #send_ras2_thread.daemon = True
         rcv1_thread.daemon = True
-        rcv2_thread.daemon = True
+        #rcv2_thread.daemon = True
         send_ras1_thread.start()
-        send_ras2_thread.start()
+        #send_ras2_thread.start()
         rcv1_thread.start()
-        rcv2_thread.start()
+        #rcv2_thread.start()
 
 if __name__ == '__main__':
     """parser = argparse.ArgumentParser(description="Control Server -sp send_port -p port")
