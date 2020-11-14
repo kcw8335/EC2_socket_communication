@@ -64,7 +64,7 @@ def make_hash(filename, directory):
     # 파일을 바이너리 읽기 모드로 열기
     XML_control = parsing_XML_control(filename, directory)
 
-    f = open(directory+filename, mode = "rb")
+    f = open(directory+filename, mode = "rb+")
     tmp_binary = f.read()
     # SHA256 객체 생성
     f.close()
@@ -81,7 +81,7 @@ def make_Json_file(edgeNO, traffic_light, time, file_path):
     file_data["traffic_light"] = traffic_light
     file_data["time"] = time
     print(json.dumps(file_data, ensure_ascii=False, indent="\t"))
-    with open(file_path, 'w', encoding='utf-8') as make_file:
+    with open(file_path, 'w+', encoding='utf-8') as make_file:
         json.dump(file_data, make_file, ensure_ascii=False, indent="\t")
 
 
@@ -121,7 +121,7 @@ def getFileSize(file_name, directory):
     return str(file_size)
 
 def getFileData(file_name, directory):
-    with open(directory + file_name, 'r', encoding="UTF-8") as f:
+    with open(directory + file_name, 'r+', encoding="UTF-8") as f:
         data = ""
         # 파일이 매번 각 라인을 읽어 리턴할 수 있기 때문에 라인마다 끊어서 저장
         for line in f:
@@ -129,8 +129,8 @@ def getFileData(file_name, directory):
     return data
 
 def hashing(file_name, directory):
-    XML_control = parsing_XML_control(file_name, directory)
-    f = open(directory + file_name, 'rb')
+    XML_control = parsing_XML(file_name, directory)
+    f = open(directory + file_name, 'rb+')
     data = f.read()
     f.close()
     data += bytes(get_salt_value(XML_control[0],XML_control[1]).encode())

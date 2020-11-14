@@ -69,12 +69,13 @@ def handle_receive(client_socket):
             client_socket.close()
             break
 """
-def handle_send1(client_socket):
+def handle_send(client_socket, addr):
     while 1:
-        if os.path.isfile(send_directory+"control_1.xml"):
-            #XML_Data = parsing_XML("control_test.xml", send_directory)
-            file_name = "control_ras1.xml"
-            os.system("cp "+send_directory+"control_1.xml "+send_directory+file_name)
+        if os.path.isfile(send_directory+"control_test.xml"):
+            file_name = "control.xml"
+            os.system("cp "+send_directory+"control_test.xml "+send_directory+file_name)
+            XML_Data = parsing_XML_control(file_name, send_directory)
+            
             # 해당 경로에 파일이 없으면 에러
             if not exists(send_directory + file_name):
                 msg = "error"
@@ -93,64 +94,8 @@ def handle_send1(client_socket):
                     print("해시 결과 : ", hashing(file_name, send_directory))
                     client_socket.sendall(hashing(file_name, send_directory).encode())
             # 전송 후 파일 바로 삭제
-            os.remove(send_directory+file_name)
-            os.remove(send_directory+"control_1.xml")
-    client_socket.close()
-
-def handle_send1(client_socket):
-    while 1:
-        if os.path.isfile(send_directory+"control_1.xml"):
-            #XML_Data = parsing_XML("control_test.xml", send_directory)
-            file_name = "control_ras1.xml"
-            os.system("cp "+send_directory+"control_1.xml "+send_directory+file_name)
-            # 해당 경로에 파일이 없으면 에러
-            if not exists(send_directory + file_name):
-                msg = "error"
-                client_socket.sendall(msg.encode())
-                client_socket.close()
-                return
-
-            client_socket.sendall(getFileSize(file_name, send_directory).encode())
-            # client가 파일 내용을 받을 준비되었는지 확인
-            ru_ready = client_socket.recv(1024)
-            if ru_ready.decode() == "ready":
-                client_socket.sendall(file_name.encode())
-                real_ready = client_socket.recv(1024)
-                if real_ready.decode() == "real":
-                    client_socket.sendall(getFileData(file_name, send_directory).encode())
-                    print("해시 결과 : ", hashing(file_name, send_directory))
-                    client_socket.sendall(hashing(file_name, send_directory).encode())
-            # 전송 후 파일 바로 삭제
-            os.remove(send_directory+file_name)
-            os.remove(send_directory+"control_1.xml")
-    client_socket.close()
-
-def handle_send2(client_socket):
-    while 1:
-        if os.path.isfile(send_directory+"control_2.xml"):
-            #XML_Data = parsing_XML("control_test.xml", send_directory)
-            file_name = "control_ras2.xml"
-            os.system("cp "+send_directory+"control_2.xml "+send_directory+file_name)
-            # 해당 경로에 파일이 없으면 에러
-            if not exists(send_directory + file_name):
-                msg = "error"
-                client_socket.sendall(msg.encode())
-                client_socket.close()
-                return
-
-            client_socket.sendall(getFileSize(file_name, send_directory).encode())
-            # client가 파일 내용을 받을 준비되었는지 확인
-            ru_ready = client_socket.recv(1024)
-            if ru_ready.decode() == "ready":
-                client_socket.sendall(file_name.encode())
-                real_ready = client_socket.recv(1024)
-                if real_ready.decode() == "real":
-                    client_socket.sendall(getFileData(file_name, send_directory).encode())
-                    print("해시 결과 : ", hashing(file_name, send_directory))
-                    client_socket.sendall(hashing(file_name, send_directory).encode())
-            # 전송 후 파일 바로 삭제
-            os.remove(send_directory+file_name)
-            os.remove(send_directory+"control_2.xml")
+            os.remove(send_directory+"control_test.xml")
+            os.remove(send_directory+"control.xml")
     client_socket.close()
 
 def accept_func():
@@ -195,8 +140,8 @@ def accept_func():
             server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
-        send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
-        send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
+        send_ras1_thread = threading.Thread(target=handle_send, args=(client_socket_ras1, addr1))
+        send_ras2_thread = threading.Thread(target=handle_send, args=(client_socket_ras2, addr2))
         rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
         rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))
         send_ras1_thread.daemon = True
