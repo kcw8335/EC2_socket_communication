@@ -16,10 +16,10 @@ from function import *
 receive_directory = "/home/ubuntu/EC2_python_realtime/realtime_data_xml/"
 send_directory = "/home/ubuntu/EC2_python_realtime/control_data_xml/"
 host = ""
-"""send_port_ras1 = 8345
+#send_port_ras1 = 8345
 send_port_ras2 = 8343
-rcv_port = 8341
-"""
+rcv_port = 8342
+
 
 
 def handle_receive(client_socket):
@@ -131,10 +131,13 @@ def handle_send2(client_socket):
 
 
 def accept_func():
+    
+    '''
     send_port_ras1 = 8345
     rcv1_port = 8341
     edgeNo1 = '1'
 
+    
     server_socket_rcv1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_rcv1.bind((host, rcv1_port))
     server_socket_rcv1.listen(1)
@@ -142,53 +145,55 @@ def accept_func():
 
     server_socket_ras1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_ras1.bind((host, send_port_ras1))
-    server_socket_ras1.listen(1)
+    server_socket_ras1.listen(1)'''
 
     send_port_ras2 = 8343
     rcv2_port = 8342
     edgeNo2 = '2'
 
-    '''server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket_rcv2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket_rcv2.bind((host, rcv2_port))
     server_socket_rcv2.listen(1)
 
     server_socket_ras2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket_ras2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket_ras2.bind((host, send_port_ras2))
-    server_socket_ras2.listen(1)'''
+    server_socket_ras2.listen(1)
 
     # 서버 소켓 rcv는 실시간 상황을 받는 소켓으로, 엣지 마다 소켓을 열며 소켓 당 최대 1개의 클라이언트의 접속을 허용한다.
     # 서버 소켓 ras는 제어를 보내는 소켓으로, 엣지 마다 소켓을 열며 소켓 당 최대 1개의 클라이언트의 접속을 허용한다.
-
     while 1:
         try:
             # 클라이언트 함수가 접속하면 새로운 소켓을 반환한다.
-            client_socket_rcv1, addr1 = server_socket_rcv1.accept()
-            client_socket_ras1, addr3 = server_socket_ras1.accept()
+            #client_socket_rcv1, addr1 = server_socket_rcv1.accept()
+            #client_socket_ras1, addr3 = server_socket_ras1.accept()
             
-            # client_socket_rcv2, addr2 = server_socket_rcv2.accept()
-            # client_socket_ras2, addr4 = server_socket_ras2.accept()
+            client_socket_rcv2, addr2 = server_socket_rcv2.accept()
+            client_socket_ras2, addr4 = server_socket_ras2.accept()
             print("접속 완료")
         except KeyboardInterrupt:
-            server_socket_rcv1.close()
-            server_socket_ras1.close()
+            #server_socket_rcv1.close()
+            #server_socket_ras1.close()
             
-            # server_socket_rcv2.close()
-            # server_socket_ras2.close()
+            server_socket_rcv2.close()
+            server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
-        send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
-        rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
-        send_ras1_thread.daemon = True
-        rcv1_thread.daemon = True
-        send_ras1_thread.start()
-        rcv1_thread.start()
 
-        '''send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
+        #send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
+        #rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
+        #send_ras1_thread.daemon = True
+        #rcv1_thread.daemon = True
+        #send_ras1_thread.start()
+        #rcv1_thread.start()
+
+        send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
         rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))
         send_ras2_thread.daemon = True
         rcv2_thread.daemon = True
         send_ras2_thread.start()
-        rcv2_thread.start()'''
+        rcv2_thread.start()
 
 if __name__ == '__main__':
     accept_func()
