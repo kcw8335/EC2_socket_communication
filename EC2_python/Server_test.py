@@ -199,17 +199,17 @@ def accept_func():
     edgeNo2 = '2'
 
     server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket_rcv2.setsockopt(socket.SO_REUSEADDR, socket.SOL_SOCKET, 1)
+    server_socket_rcv2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket_rcv2.bind((host, rcv2_port))
     server_socket_rcv2.listen(1)
 
     server_socket_ras2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket_ras2.setsockopt(socket.SO_REUSEADDR, socket.SOL_SOCKET, 1)
+    server_socket_ras2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket_ras2.bind((host, send_port_ras2))
     server_socket_ras2.listen(1)
 
     server_socket_st2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket_st2.setsockopt(socket.SO_REUSEADDR, socket.SOL_SOCKET, 1)
+    server_socket_st2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket_st2.bind((host, rcv_st2_port))
     server_socket_st2.listen(1)
     # 서버 소켓 rcv는 실시간 상황을 받는 소켓으로, 엣지 마다 소켓을 열며 소켓 당 최대 1개의 클라이언트의 접속을 허용한다.
