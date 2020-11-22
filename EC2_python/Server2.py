@@ -132,7 +132,7 @@ def handle_send2(client_socket):
 
 def accept_func():
     
-    '''
+    
     send_port_ras1 = 8345
     rcv1_port = 8341
     edgeNo1 = '1'
@@ -142,7 +142,7 @@ def accept_func():
     server_socket_rcv1.listen(1)
     server_socket_ras1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_ras1.bind((host, send_port_ras1))
-    server_socket_ras1.listen(1)'''
+    server_socket_ras1.listen(1)
 
     send_port_ras2 = 8343
     rcv2_port = 8342
@@ -163,27 +163,27 @@ def accept_func():
     while 1:
         try:
             # 클라이언트 함수가 접속하면 새로운 소켓을 반환한다.
-            #client_socket_rcv1, addr1 = server_socket_rcv1.accept()
-            #client_socket_ras1, addr3 = server_socket_ras1.accept()
+            client_socket_rcv1, addr1 = server_socket_rcv1.accept()
+            client_socket_ras1, addr3 = server_socket_ras1.accept()
             
             client_socket_rcv2, addr2 = server_socket_rcv2.accept()
             client_socket_ras2, addr4 = server_socket_ras2.accept()
             print("접속 완료")
         except KeyboardInterrupt:
-            #server_socket_rcv1.close()
-            #server_socket_ras1.close()
+            server_socket_rcv1.close()
+            server_socket_ras1.close()
             
             server_socket_rcv2.close()
             server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
 
-        #send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
-        #rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
-        #send_ras1_thread.daemon = True
-        #rcv1_thread.daemon = True
-        #send_ras1_thread.start()
-        #rcv1_thread.start()
+        send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
+        rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
+        send_ras1_thread.daemon = True
+        rcv1_thread.daemon = True
+        send_ras1_thread.start()
+        rcv1_thread.start()
 
         send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
         rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))

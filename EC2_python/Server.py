@@ -24,47 +24,40 @@ rcv_port = 8342
 
 def handle_receive(client_socket):
     while 1:
-        # try:
-        f_size = client_socket.recv(1024)
-        f_size = f_size.decode()
+        try:
+            f_size = client_socket.recv(1024)
+            f_size = f_size.decode()
 
-        if f_size == "error":
-            print("파일을 찾을 수 없습니다.")
-            return
+            if f_size == "error":
+                print("파일을 찾을 수 없습니다.")
+                return
 
-        msg = "ready"
-        client_socket.sendall(msg.encode())
-        file_name = client_socket.recv(1024)
-        file_name = file_name.decode()
-        msg1 = "real"
-        client_socket.sendall(msg1.encode())
+            msg = "ready"
+            client_socket.sendall(msg.encode())
+            file_name = client_socket.recv(1024)
+            file_name = file_name.decode()
+            msg1 = "real"
+            client_socket.sendall(msg1.encode())
         #
         # 무결성 코드 작성하기
         #
-        with open(receive_directory + file_name, 'w', encoding='utf-8') as f:
+            with open(receive_directory + file_name, 'w+', encoding='utf-8') as f:
             # 파일 사이즈만큼 recv
-            data = client_socket.recv(int(f_size))
-            f.write(data.decode())
+                data = client_socket.recv(int(f_size))
+                f.write(data.decode())
 
-        hd = client_socket.recv(256)
-        hd = hd.decode()
+            hd = client_socket.recv(256)
+            hd = hd.decode()
         # ====================================================================================================================================================================
         # 파일을 json으로 변환한 후 바로 전송하는 코드
-        """tmp_list = parsing_XML(file_name, receive_directory)
-        if tmp_list[0] == "1":
-            file_path = "/home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_1.json"
-            make_Json_file(tmp_list[0], tmp_list[1], tmp_list[2], file_path)
-            os.system('scp -i "/home/ubuntu/socket_programming.pem" /home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_1.json ubuntu@ec2-13-209-12-175.ap-northeast-2.compute.amazonaws.com:/home/ubuntu/project4/realtime/')
-        elif tmp_list[0] == "2":
-            file_path = "/home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_2.json"
-            make_Json_file(tmp_list[0], tmp_list[1], tmp_list[2], file_path)
-            os.system('scp -i "/home/ubuntu/socket_programming.pem" /home/ubuntu/EC2_python_realtime/realtime_data_json/realtime_2.json ubuntu@ec2-13-209-12-175.ap-northeast-2.compute.amazonaws.com:/home/ubuntu/project4/realtime/')"""
         # ====================================================================================================================================================================
-        print(integrity_check_send(hd, file_name, receive_directory))
+            print(integrity_check_send(hd, file_name, receive_directory))
         # ====================================================================================================================================================================
-        print("file name : " + file_name)
-        print("size : " + f_size)
-        print("hash digest : ", hd)
+            print("file name : " + file_name)
+            print("size : " + f_size)
+            print("hash digest : ", hd)
+        except IsADirectoryError:
+            continue
         """except:
             print("연결 끊김")
             client_socket.close()
@@ -132,10 +125,9 @@ def handle_send2(client_socket):
 
 def accept_func():
     
-    '''
+   
     send_port_ras1 = 8345
     rcv1_port = 8341
-    edgeNo1 = '1'
 
     
     server_socket_rcv1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -145,11 +137,10 @@ def accept_func():
 
     server_socket_ras1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_ras1.bind((host, send_port_ras1))
-    server_socket_ras1.listen(1)'''
+    server_socket_ras1.listen(1)
 
     send_port_ras2 = 8343
     rcv2_port = 8342
-    edgeNo2 = '2'
 
     server_socket_rcv2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket_rcv2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -166,27 +157,27 @@ def accept_func():
     while 1:
         try:
             # 클라이언트 함수가 접속하면 새로운 소켓을 반환한다.
-            #client_socket_rcv1, addr1 = server_socket_rcv1.accept()
-            #client_socket_ras1, addr3 = server_socket_ras1.accept()
+            client_socket_rcv1, addr1 = server_socket_rcv1.accept()
+            client_socket_ras1, addr3 = server_socket_ras1.accept()
             
             client_socket_rcv2, addr2 = server_socket_rcv2.accept()
             client_socket_ras2, addr4 = server_socket_ras2.accept()
             print("접속 완료")
         except KeyboardInterrupt:
-            #server_socket_rcv1.close()
-            #server_socket_ras1.close()
+            server_socket_rcv1.close()
+            server_socket_ras1.close()
             
             server_socket_rcv2.close()
             server_socket_ras2.close()
             print("Keyboard interrupt, Server 종료...")
 
 
-        #send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
-        #rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
-        #send_ras1_thread.daemon = True
-        #rcv1_thread.daemon = True
-        #send_ras1_thread.start()
-        #rcv1_thread.start()
+        send_ras1_thread = threading.Thread(target=handle_send1, args=(client_socket_ras1,))
+        rcv1_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv1,))
+        send_ras1_thread.daemon = True
+        rcv1_thread.daemon = True
+        send_ras1_thread.start()
+        rcv1_thread.start()
 
         send_ras2_thread = threading.Thread(target=handle_send2, args=(client_socket_ras2,))
         rcv2_thread = threading.Thread(target=handle_receive, args=(client_socket_rcv2,))

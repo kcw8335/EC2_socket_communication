@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <realtime>
   <edgeNo>1</edgeNo>
-  <traffic_light>1</traffic_light>
-  <time>0</time>
+  <traffic_light>3</traffic_light>
+  <time>3</time>
 </realtime>

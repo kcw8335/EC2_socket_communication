@@ -97,10 +97,10 @@ def integrity_check_send(hd, file_name, directory):
     time = tmp_list[2]
     # 솔트값 얻기
     salt_value = get_salt_value(edgeNo, traffic_light)
-    # xml과 솔트 값을 받아서 hash 하기
+   # xml과 솔트 값을 받아서 hash 하기
     hash_value = make_hash(file_name, directory)
     print("hd : ", hd)
-    print("hash_value : ", hash_value)
+    print("hash_value: ",hash_value)
     # 받은 hash값과 생성한 hash 값이 같다면 json 파일 생성 후 송신
     if hd == hash_value:
         if edgeNo == "1":
@@ -133,6 +133,7 @@ def hashing(file_name, directory):
     f = open(directory + file_name, 'rb+')
     data = f.read()
     f.close()
-    data += bytes(get_salt_value(XML_control[0],XML_control[1]).encode())
+    salt = get_salt_value(XML_control[0],XML_control[1])
+    data += bytes(str(salt).encode())
     hd = hashlib.sha256(data).hexdigest()
     return hd
